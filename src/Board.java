@@ -2,7 +2,7 @@ import java.util.Iterator;
 
 import edu.princeton.cs.algs4.StdOut;
 
-public class Board implements Iterable<Board>{
+public class Board{
     private int[][] tiles;
     private final int[][] goalTile;
     private final int size;
@@ -137,13 +137,9 @@ public class Board implements Iterable<Board>{
         return new BoardIterator();
     }
 
-    // Redundant code
-    @Override
-    public Iterator<Board> iterator() {
-        return new BoardIterator();
-    }
-
     public static void main(String[] args) {
+        // Unit-testing code
+        
         int[][] tiles = {{8, 1, 3}, {4, 0, 2}, {7, 6, 5}};
 
         Board board = new Board(tiles);
