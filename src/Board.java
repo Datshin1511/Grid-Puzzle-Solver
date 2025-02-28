@@ -1,197 +1,59 @@
+import java.util.Arrays;
 import java.util.Iterator;
-
 import edu.princeton.cs.algs4.StdOut;
 
-public class Board{
+public class Board {
     private final int[][] tiles;
-    private final int[] openTile;
-    private final int[][] goalTile;
     private final int size;
-    private Board[] neighbours;
+    private final int zeroRow;
+    private final int zeroCol;
+    private final int hammingScore;
+    private final int manhattanScore;
 
-    private class BoardIterator implements Iterator<Board> {
-        int current = 0;
-
-        public boolean hasNext() {
-            return current < neighbours.length;
-        }
-
-        public Board next() {
-            if (!hasNext()) {
-                throw new ArrayIndexOutOfBoundsException("Array has exhausted");
-            }
-
-            Board board = neighbours[current++];
-            // current = (current + 1) % neighbours.length;
-            return board;
-        }
-
-        public void remove() {
-            throw new UnsupportedOperationException("Remove operation is not supported");
-        }
+    // PRIVATE FUNCTIONS
+    private int[][] copyTiles() {
+        int[][] copyArray = new int[size][size];
+        for(int i=0; i<size; i++)
+            copyArray[i] = Arrays.copyOf(tiles[i], size);
+         return copyArray;
     }
 
-    public Board(int[][] tiles){
-        this.tiles = tiles;
-        size = tiles.length;
-
-        goalTile = new int[size][size];
-        openTile = new int[2];
-        neighbours = new Board[4];
-
-        finalBoard();        
+    private void exchangeBlankTile(Board board, int nR, int nC) {
+        int temp = board.tiles[zeroRow][zeroCol];
+        board.tiles[zeroRow][zeroCol] = board.tiles[nR][nC];
+        board.tiles[nR][nC] = temp;
     }
-
-    private void exchange(Board board, int oRow, int oCol, int nRow, int nCol){
-        int temp = board.tiles[oRow][oCol];
-        board.tiles[oRow][oCol] = board.tiles[nRow][nCol];
-        board.tiles[nRow][nCol] = temp;
-
-        board.openTile[0] = nRow;
-        board.openTile[1] = nCol;
-    }
-
-    public void finalBoard(){
-            int rowCount = 0;
     
-            for(int i=0; i<size; i++){
-                for(int j=0; j<size; j++){
-                    if(tiles[i][j] == 0){
-                        openTile[0] = i;
-                        openTile[1] = j;
-                    }
-                    goalTile[i][j] = rowCount+j+1;
+    // PUBLIC FUNCTIONS
+    public Board(int[][] tiles) {
+        this.size = tiles.length;
+        this.tiles = new int[size][size];
+        
+        int manhattan = 0, hamming = 0, zeroR = -1, zeroC = -1;
+
+        for(int i=0; i<size; i++){
+            for(int j=0; j<size; j++){
+                this.tiles[i][j] = tiles[i][j];
+
+                if(tiles[i][j] == 0) { zeroR = i; zeroC = j; }
+                else {
+                    int correctRow = (tiles[i][j] - 1) / size;
+                    int correctCol = (tiles[i][j] - 1) % size;
+
+                    if(tiles[i][j] != (i * size + j + 1)) hamming++;
+                    manhattan = Math.abs(i - correctRow) + Math.abs(j - correctCol);
                 }
-                rowCount += 3;
-            }
-    
-            goalTile[size-1][size-1] = 0;
-        }
-
-    private void createBoardNeighbours(){
-        int r = openTile[0], c = openTile[1];
-        Board temp = null;
-        int index = 0;
-
-        // Board comparisons
-        if (c == 0){
-            if (r == 0){
-                temp = twin();
-                exchange(temp, r, c, r+1, c);
-                neighbours[index++] = temp;
-                temp = twin();
-                exchange(temp, r, c, r, c+1);
-                neighbours[index++] = temp;
-            }
-            else if (r == size - 1){
-                temp = twin();
-                exchange(temp, r, c, r-1, c);
-                neighbours[index++] = temp;
-                temp = twin();
-                exchange(temp, r, c, r, c+1);
-                neighbours[index++] = temp;
-            }
-            else {
-                temp = twin();
-                exchange(temp, r, c, r-1, c);
-                neighbours[index++] = temp;
-
-                temp = twin();
-                exchange(temp, r, c, r+1, c);  
-                neighbours[index++] = temp;
-
-                temp = twin();
-                exchange(temp, r, c, r, c+1);
-                neighbours[index++] = temp;
-            }
-        }
-        else if (c == size-1) {
-            if(r == 0){
-                temp = twin();
-                exchange(temp, r, c, r+1, c);
-                neighbours[index++] = temp;
-
-                temp = twin();
-                exchange(temp, r, c, r, c-1);
-                neighbours[index++] = temp;
-            }
-            else if (r == size-1){
-                temp = twin();
-                exchange(temp, r, c, r-1, c);
-                neighbours[index++] = temp;
-
-                temp = twin();
-                exchange(temp, r, c, r, c-1);
-                neighbours[index++] = temp;
-            }
-            else {
-                temp = twin();
-                exchange(temp, r, c, r-1, c);
-                neighbours[index++] = temp;
-
-                temp = twin();
-                exchange(temp, r, c, r+1, c);
-                neighbours[index++] = temp;
-
-                temp = twin();
-                exchange(temp, r, c, r, c-1);
-                neighbours[index++] = temp;
-            }
-        }
-        else {
-            if (r == 0){
-                temp = twin();
-                exchange(temp, r, c, r, c-1);
-                neighbours[index++] = temp;
-
-                temp = twin();
-                exchange(temp, r, c, r, c+1);
-                neighbours[index++] = temp;
-
-                temp = twin();
-                exchange(temp, r, c, r+1, c);
-                neighbours[index++] = temp;
-            }
-            else if (r == size-1){
-                temp = twin();
-                exchange(temp, r, c, r, c-1);
-                neighbours[index++] = temp;
-
-                temp = twin();
-                exchange(temp, r, c, r, c+1);
-                neighbours[index++] = temp;
-
-                temp = twin();
-                exchange(temp, r, c, r-1, c);
-                neighbours[index++] = temp;
-            }
-            else {
-                temp = this.twin();
-                exchange(temp, r, c, r-1, c);
-                neighbours[index++] = temp;
-                temp = null;
-
-                temp = this.twin();
-                exchange(temp, r, c, r+1, c);
-                neighbours[index++] = temp;
-                temp = null;
-
-                temp = this.twin();
-                exchange(temp, r, c, r, c-1);
-                neighbours[index++] = temp;
-                temp = null;
-
-                temp = this.twin();
-                exchange(temp, r, c, r, c+1);
-                neighbours[index++] = temp;
-                temp = null;
             }
         }
 
-        temp = null;
+        this.manhattanScore = manhattan;
+        this.hammingScore = hamming;
+        this.zeroRow = zeroR;
+        this.zeroCol = zeroC;
+
     }
 
-    public String toString(){
+    public String toString() {
         String bluePrint = "";
         
         bluePrint += Integer.toString(size);
@@ -208,71 +70,75 @@ public class Board{
         return bluePrint;
     }
 
-    public int dimension(){
+    public int dimension() {
         return size;
     }
 
-    public int hamming(){
-        int hammingScore = 0;
-
-        for(int i=0; i<size; i++){
-            for(int j=0; j<size; j++){
-                if(tiles[i][j] == 0) continue;
-                if(tiles[i][j] != goalTile[i][j]) hammingScore++;
-            }
-        }
-
+    public int hamming() {
         return hammingScore;
     }
 
-    public int manhattan(){
-        int manhattanScore = 0;
-
-        for(int i=0; i<size; i++){
-            for(int j=0; j<size; j++){
-                int element = tiles[i][j];
-
-                if(element == 0) continue;
-
-                int actualRow = (element % size == 0) ? (element/size - 1) : (element/size);
-                int actualCol = (element % size == 0) ? (size - 1) : (element%size - 1);
-
-                if(i != actualRow) 
-                    manhattanScore += (actualRow > i) ? (actualRow - i) : (i - actualRow);
-                if(j != actualCol)
-                    manhattanScore += (actualCol > j) ? (actualCol - j) : (j - actualCol);
-            }
-        }
-
-        return manhattanScore;
+    public int manhattan() {
+         return manhattanScore;
     }
 
-    public boolean isGoal(){
-        return tiles.equals(goalTile);   
+    public boolean isGoal() {
+        return hammingScore == 0 || manhattanScore == 0;   
     }
 
-    public boolean equals(Object y){
+    public boolean equals(Object y) {
         return tiles.equals(y);
     }
 
-    public Board twin(){
-        int[][] copyBoard = new int[size][size];
-
-        for(int i=0; i<size; i++){
-            copyBoard[i] = tiles[i].clone();
-        }
-
-        return new Board(copyBoard);
+    public Board twin() {
+        return new Board(copyTiles());
     }
 
-    public Iterator<Board> neighbors(){
-        createBoardNeighbours();
-        return new BoardIterator();
+    public Iterable<Board> neighbors() {
+        return new Iterable<Board>() {
+
+            @Override
+            public Iterator<Board> iterator() {
+                return new Iterator<Board>() {
+                    private final int[][] directions = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+                    private final int max = directions.length;
+                    private int index = 0;
+
+                    public boolean hasNext() {
+                        while (index < max) {
+                            int nRow = zeroRow + directions[index][0];
+                            int nCol = zeroCol + directions[index][1];
+
+                            if(nRow >= 0 && nRow < size && nCol >= 0 && nCol < size) return true;
+                            index++;
+                        }
+                        return false;
+                    }
+
+                    public Board next() {
+                        if(!hasNext()){
+                            throw new ArrayIndexOutOfBoundsException("Array has exhausted");
+                        }
+
+                        int nRow = zeroRow + directions[index][0];
+                        int nCol = zeroRow + directions[index][1];
+
+                        Board tempBoard = twin();
+                        exchangeBlankTile(tempBoard, nRow, nCol);
+                        index++;
+
+                        return tempBoard;
+
+                    }
+    
+                };
+            }
+            
+        };
     }
 
-    public static void main(String[] args) {
-        // Unit-testing code
-        
+    // MAIN - UNIT TESTING
+    public static void main(String[] args) {        
         int[][] tiles = {{8, 1, 3}, {4, 0, 2}, {7, 6, 5}};
 
         Board board = new Board(tiles);
@@ -280,13 +146,20 @@ public class Board{
         StdOut.println("Hamming distance: " + board.hamming());
         StdOut.println("Manhattan distance: " + board.manhattan());
 
-        Iterator<Board> it = board.neighbors();
+        StdOut.println("--------------------------");
+        StdOut.println("Current Board: ");
+        StdOut.println("--------------------------");
+        StdOut.println(board.toString());
 
-        StdOut.println("Current board neighbours");
+        Iterator<Board> it = board.neighbors().iterator();
+
+        StdOut.println("--------------------------");
+        StdOut.println("Neighbours");
+        StdOut.println("--------------------------");
 
         while(it.hasNext()){
             StdOut.println(it.next().toString());
-            StdOut.println("--------------------------");
+            StdOut.println();
         }
     }
 
