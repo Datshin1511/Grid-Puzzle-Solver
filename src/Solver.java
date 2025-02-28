@@ -1,6 +1,20 @@
+import java.util.Iterator;
+
+import edu.princeton.cs.algs4.MinPQ;
+
 public class Solver {
+    public int minBoardMoves;
+    private MinPQ<Board> boardPossibilites;
+
     public Solver(Board initial){
         // TODO: Complete the function
+        boardPossibilites.insert(initial);
+        Iterator<Board> it = initial.neighbors();
+
+        while(it.hasNext()){
+            it.next();
+        }
+        minBoardMoves = 0;
     }
 
     public boolean isSolvable(){
@@ -9,8 +23,7 @@ public class Solver {
     }
 
     public int moves(){
-        // TODO: Complete the function
-        return -1;
+        return minBoardMoves;
     }
 
     public Iterable<Board> solution(){

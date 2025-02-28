@@ -3,16 +3,17 @@ import java.util.Iterator;
 import edu.princeton.cs.algs4.StdOut;
 
 public class Board{
-    private int[][] tiles;
+    private final int[][] tiles;
+    private final int[] openTile;
     private final int[][] goalTile;
     private final int size;
+    private Board[] neighbours;
 
     private class BoardIterator implements Iterator<Board> {
-        Board[] neighbouringBoards;
         int current = 0;
 
         public boolean hasNext() {
-            return current < neighbouringBoards.length;
+            return current < neighbours.length;
         }
 
         public Board next() {
@@ -20,8 +21,8 @@ public class Board{
                 throw new ArrayIndexOutOfBoundsException("Array has exhausted");
             }
 
-            Board board = neighbouringBoards[current];
-            current = (current + 1) % neighbouringBoards.length;
+            Board board = neighbours[current++];
+            // current = (current + 1) % neighbours.length;
             return board;
         }
 
@@ -35,17 +36,159 @@ public class Board{
         size = tiles.length;
 
         goalTile = new int[size][size];
+        openTile = new int[2];
+        neighbours = new Board[4];
 
-        int rowCount = 0;
+        finalBoard();        
+    }
 
-        for(int i=0; i<size; i++){
-            for(int j=0; j<size; j++){
-                goalTile[i][j] = rowCount+j+1;
+    private void exchange(Board board, int oRow, int oCol, int nRow, int nCol){
+        int temp = board.tiles[oRow][oCol];
+        board.tiles[oRow][oCol] = board.tiles[nRow][nCol];
+        board.tiles[nRow][nCol] = temp;
+
+        board.openTile[0] = nRow;
+        board.openTile[1] = nCol;
+    }
+
+    public void finalBoard(){
+            int rowCount = 0;
+    
+            for(int i=0; i<size; i++){
+                for(int j=0; j<size; j++){
+                    if(tiles[i][j] == 0){
+                        openTile[0] = i;
+                        openTile[1] = j;
+                    }
+                    goalTile[i][j] = rowCount+j+1;
+                }
+                rowCount += 3;
             }
-            rowCount += 3;
+    
+            goalTile[size-1][size-1] = 0;
         }
 
-        goalTile[size-1][size-1] = 0;
+    private void createBoardNeighbours(){
+        int r = openTile[0], c = openTile[1];
+        Board temp = null;
+        int index = 0;
+
+        // Board comparisons
+        if (c == 0){
+            if (r == 0){
+                temp = twin();
+                exchange(temp, r, c, r+1, c);
+                neighbours[index++] = temp;
+                temp = twin();
+                exchange(temp, r, c, r, c+1);
+                neighbours[index++] = temp;
+            }
+            else if (r == size - 1){
+                temp = twin();
+                exchange(temp, r, c, r-1, c);
+                neighbours[index++] = temp;
+                temp = twin();
+                exchange(temp, r, c, r, c+1);
+                neighbours[index++] = temp;
+            }
+            else {
+                temp = twin();
+                exchange(temp, r, c, r-1, c);
+                neighbours[index++] = temp;
+
+                temp = twin();
+                exchange(temp, r, c, r+1, c);  
+                neighbours[index++] = temp;
+
+                temp = twin();
+                exchange(temp, r, c, r, c+1);
+                neighbours[index++] = temp;
+            }
+        }
+        else if (c == size-1) {
+            if(r == 0){
+                temp = twin();
+                exchange(temp, r, c, r+1, c);
+                neighbours[index++] = temp;
+
+                temp = twin();
+                exchange(temp, r, c, r, c-1);
+                neighbours[index++] = temp;
+            }
+            else if (r == size-1){
+                temp = twin();
+                exchange(temp, r, c, r-1, c);
+                neighbours[index++] = temp;
+
+                temp = twin();
+                exchange(temp, r, c, r, c-1);
+                neighbours[index++] = temp;
+            }
+            else {
+                temp = twin();
+                exchange(temp, r, c, r-1, c);
+                neighbours[index++] = temp;
+
+                temp = twin();
+                exchange(temp, r, c, r+1, c);
+                neighbours[index++] = temp;
+
+                temp = twin();
+                exchange(temp, r, c, r, c-1);
+                neighbours[index++] = temp;
+            }
+        }
+        else {
+            if (r == 0){
+                temp = twin();
+                exchange(temp, r, c, r, c-1);
+                neighbours[index++] = temp;
+
+                temp = twin();
+                exchange(temp, r, c, r, c+1);
+                neighbours[index++] = temp;
+
+                temp = twin();
+                exchange(temp, r, c, r+1, c);
+                neighbours[index++] = temp;
+            }
+            else if (r == size-1){
+                temp = twin();
+                exchange(temp, r, c, r, c-1);
+                neighbours[index++] = temp;
+
+                temp = twin();
+                exchange(temp, r, c, r, c+1);
+                neighbours[index++] = temp;
+
+                temp = twin();
+                exchange(temp, r, c, r-1, c);
+                neighbours[index++] = temp;
+            }
+            else {
+                temp = this.twin();
+                exchange(temp, r, c, r-1, c);
+                neighbours[index++] = temp;
+                temp = null;
+
+                temp = this.twin();
+                exchange(temp, r, c, r+1, c);
+                neighbours[index++] = temp;
+                temp = null;
+
+                temp = this.twin();
+                exchange(temp, r, c, r, c-1);
+                neighbours[index++] = temp;
+                temp = null;
+
+                temp = this.twin();
+                exchange(temp, r, c, r, c+1);
+                neighbours[index++] = temp;
+                temp = null;
+            }
+        }
+
+        temp = null;
     }
 
     public String toString(){
@@ -57,23 +200,6 @@ public class Board{
         for(int i=0; i<size; i++){
             for(int j=0; j<size; j++){
                 bluePrint += Integer.toString(tiles[i][j]);
-                if(j != size-1) bluePrint += " ";
-            }
-            bluePrint += "\n";
-        }
-
-        return bluePrint;
-    }
-
-    public String goalTileToString(){
-        String bluePrint = "";
-        
-        bluePrint += Integer.toString(size);
-        bluePrint += "\n";
-
-        for(int i=0; i<size; i++){
-            for(int j=0; j<size; j++){
-                bluePrint += Integer.toString(goalTile[i][j]);
                 if(j != size-1) bluePrint += " ";
             }
             bluePrint += "\n";
@@ -130,10 +256,17 @@ public class Board{
     }
 
     public Board twin(){
-        return new Board(tiles);
+        int[][] copyBoard = new int[size][size];
+
+        for(int i=0; i<size; i++){
+            copyBoard[i] = tiles[i].clone();
+        }
+
+        return new Board(copyBoard);
     }
 
-    public Iterator<Board> neighbours(){
+    public Iterator<Board> neighbors(){
+        createBoardNeighbours();
         return new BoardIterator();
     }
 
@@ -146,6 +279,15 @@ public class Board{
 
         StdOut.println("Hamming distance: " + board.hamming());
         StdOut.println("Manhattan distance: " + board.manhattan());
+
+        Iterator<Board> it = board.neighbors();
+
+        StdOut.println("Current board neighbours");
+
+        while(it.hasNext()){
+            StdOut.println(it.next().toString());
+            StdOut.println("--------------------------");
+        }
     }
 
 }
